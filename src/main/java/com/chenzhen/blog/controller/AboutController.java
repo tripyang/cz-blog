@@ -1,6 +1,7 @@
 package com.chenzhen.blog.controller;
 
 import com.chenzhen.blog.entity.enums.SysConfigEnum;
+import com.chenzhen.blog.entity.pojo.SysConfig;
 import com.chenzhen.blog.service.SysConfigService;
 import com.chenzhen.blog.service.ViewsService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,28 +25,36 @@ public class AboutController {
     SysConfigService sysConfigService;
 
     @GetMapping("/about")
-    public String about(Model model){
+    public String about(Model model) {
 
         // 获取简介
-        String intro = sysConfigService.getByEnums(SysConfigEnum.ABOUT_ME_INTRODUCTION).getValue();
+        String intro = getCfg(SysConfigEnum.ABOUT_ME_INTRODUCTION);
         // 获取内容
-        String content = sysConfigService.getByEnums(SysConfigEnum.ABOUT_ME_CONTENT).getValue();
+        String content = getCfg(SysConfigEnum.ABOUT_ME_CONTENT);
         // 获取作者
-        String author = sysConfigService.getByEnums(SysConfigEnum.AUTHOR).getValue();
+        String author = getCfg(SysConfigEnum.AUTHOR);
         // 获取技能
         //获取技能字符串
-        String skillStr = sysConfigService.getByEnums(SysConfigEnum.ABOUT_ME_SKILL).getValue();
+        String skillStr = getCfg(SysConfigEnum.ABOUT_ME_SKILL);
         //逗号分割
         String[] skills = skillStr.split("[,，]");
 
-        model.addAttribute("intro",intro);
-        model.addAttribute("content",content);
-        model.addAttribute("skills",skills);
-        model.addAttribute("author",author);
+        model.addAttribute("intro", intro);
+        model.addAttribute("content", content);
+        model.addAttribute("skills", skills);
+        model.addAttribute("author", author);
 
         // 更新总浏览量
         viewsService.updateTotalViews();
 
         return "about";
+    }
+
+    private String getCfg(SysConfigEnum configEnum) {
+        SysConfig cfg = sysConfigService.getByEnums(configEnum);
+        if (cfg == null) {
+            return "";
+        }
+        return cfg.getValue();
     }
 }

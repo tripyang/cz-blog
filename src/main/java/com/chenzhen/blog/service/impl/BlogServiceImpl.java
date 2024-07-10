@@ -6,14 +6,14 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.chenzhen.blog.entity.dto.BlogDTO;
+import com.chenzhen.blog.entity.pojo.Blog;
 import com.chenzhen.blog.entity.pojo.BlogTag;
 import com.chenzhen.blog.entity.pojo.Tag;
-import com.chenzhen.blog.entity.pojo.Blog;
 import com.chenzhen.blog.entity.query.BlogQuery;
 import com.chenzhen.blog.entity.vo.BlogVO;
+import com.chenzhen.blog.mapper.BlogMapper;
 import com.chenzhen.blog.mapper.TagMapper;
 import com.chenzhen.blog.service.BlogService;
-import com.chenzhen.blog.mapper.BlogMapper;
 import com.chenzhen.blog.service.TypeService;
 import com.chenzhen.blog.util.MarkdownUtil;
 import com.chenzhen.blog.util.R;
@@ -24,17 +24,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
-* @author MIS
-* @description 针对表【t_blog】的数据库操作Service实现
-* @createDate 2022-09-11 18:21:11
-*/
+ * @author MIS
+ * @description 针对表【t_blog】的数据库操作Service实现
+ * @createDate 2022-09-11 18:21:11
+ */
 @Service
 public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
-    implements BlogService{
+        implements BlogService {
 
 
     @Autowired
@@ -50,7 +53,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         PageHelper.orderBy("create_time desc");
 
         List<BlogVO> blogList = blogMapper.pageAdminBlogs(query);
-        if (CollUtil.isEmpty(blogList)){
+        if (CollUtil.isEmpty(blogList)) {
             return new PageInfo<>(blogList);
         }
         // 获取所有博客的 ID 列表
@@ -59,8 +62,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         List<BlogTag> blogTags = tagMapper.getTagsByBlogIds(blogIds);
         // 设置每个博客的标签
         for (BlogVO blog : blogList) {
-            for (BlogTag blogTag : blogTags){
-                if (blogTag.getBlogId().equals(blog.getId())){
+            for (BlogTag blogTag : blogTags) {
+                if (blogTag.getBlogId().equals(blog.getId())) {
                     blog.setTagList(blogTag.getTags());
                 }
             }
@@ -82,7 +85,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     @Override
     public BlogDTO getBlogDTO(Long id) {
         Blog blog = blogMapper.selectById(id);
-        if (blog == null){
+        if (blog == null) {
             return null;
         }
         BlogDTO blogDTO = new BlogDTO();
@@ -110,7 +113,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
             return R.error("更新博客标签失败!");
         }
         //更新博客的标签
-        return  R.success() ;
+        return R.success();
     }
 
     @Override
@@ -121,11 +124,11 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         // 如果没有标签Id
         if (ArrayUtil.isEmpty(tagIds)) {
             // 获取所有文章
-            blogList  = getBaseMapper().getBlogList();
+            blogList = getBaseMapper().getBlogList();
             PageInfo<BlogVO> pageInfo = new PageInfo<>(blogList);
             return pageInfo;
 
-        }else{
+        } else {
             // 根据标签Id列表获取文章Id列表
             List<Long> blogIds = getBaseMapper().getBlogIdsByTagIds(tagIds);
             if (ArrayUtil.isEmpty(blogIds)) {
@@ -155,10 +158,10 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
 
     @Override
     public List<Blog> getSimilarBlogs(Long id) {
-        Blog targetBlog  = getById(id);
+        Blog targetBlog = getById(id);
         String targetTitle = targetBlog.getTitle();
 
-        Map<Blog,Double> recommendedBlogsMap = new HashMap<>();
+        Map<Blog, Double> recommendedBlogsMap = new HashMap<>();
         // 遍历所有博文，计算标题相似度
         for (Blog blog : blogMapper.getAllTitle()) {
             // 排除目标博文自身
@@ -220,7 +223,7 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         //删除原有关联关系
         blogMapper.deleteAllBlogTags(blogId);
         //没有设置标签 直接返回
-        if (CollUtil.isEmpty(tagIds)){
+        if (CollUtil.isEmpty(tagIds)) {
             return true;
         }
         //插入新的关联关系
@@ -230,6 +233,9 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
     public Boolean saveBlogTags(Long id, List<Long> tagIds) {
+        if (tagIds == null) {
+            return Boolean.TRUE;
+        }
         return blogMapper.saveBlogTags(id, tagIds);
     }
 
@@ -249,8 +255,8 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         List<BlogTag> blogTags = tagMapper.getTagsByBlogIds(blogIds);
         //4 设置每个博客的标签
         for (BlogVO blog : blogList) {
-            for (BlogTag blogTag : blogTags){
-                if (blogTag.getBlogId().equals(blog.getId())){
+            for (BlogTag blogTag : blogTags) {
+                if (blogTag.getBlogId().equals(blog.getId())) {
                     blog.setTagList(blogTag.getTags());
                 }
             }
@@ -259,7 +265,6 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
         return pageInfo;
 
     }
-
 
 
     @Override
@@ -293,15 +298,12 @@ public class BlogServiceImpl extends ServiceImpl<BlogMapper, Blog>
     }
 
 
-
     @Override
     public Long getBlogViewTotal() {
         Long countViews = getBaseMapper().countViews();
 
         return countViews;
     }
-
-
 
 
 }
